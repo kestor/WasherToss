@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    <canvas id="canvas512" width="512" height="512" style="border: 1px solid #ccc; margin: 10px;"></canvas>
+    
+    <script>
+        function createIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#2196F3';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Trophy icon
+            ctx.fillStyle = '#FFD700';
+            
+            // Trophy cup
+            const cupWidth = size * 0.4;
+            const cupHeight = size * 0.3;
+            const cupX = (size - cupWidth) / 2;
+            const cupY = size * 0.2;
+            
+            ctx.fillRect(cupX, cupY, cupWidth, cupHeight);
+            
+            // Trophy handles
+            const handleWidth = size * 0.08;
+            const handleHeight = size * 0.15;
+            ctx.fillRect(cupX - handleWidth, cupY + size * 0.05, handleWidth, handleHeight);
+            ctx.fillRect(cupX + cupWidth, cupY + size * 0.05, handleWidth, handleHeight);
+            
+            // Trophy base
+            const baseWidth = size * 0.5;
+            const baseHeight = size * 0.15;
+            const baseX = (size - baseWidth) / 2;
+            const baseY = cupY + cupHeight;
+            
+            ctx.fillRect(baseX, baseY, baseWidth, baseHeight);
+            
+            // Trophy stem
+            const stemWidth = size * 0.1;
+            const stemHeight = size * 0.2;
+            const stemX = (size - stemWidth) / 2;
+            const stemY = baseY + baseHeight;
+            
+            ctx.fillRect(stemX, stemY, stemWidth, stemHeight);
+            
+            // Download link
+            const link = document.createElement('a');
+            link.download = `icon-${size}.png`;
+            link.href = canvas.toDataURL();
+            link.textContent = `Download ${size}x${size} icon`;
+            link.style.display = 'block';
+            link.style.margin = '10px';
+            document.body.appendChild(link);
+        }
+        
+        createIcon('canvas192', 192);
+        createIcon('canvas512', 512);
+    </script>
+</body>
+</html>

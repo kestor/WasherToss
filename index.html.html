@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2196F3">
+    <title>Washer Toss</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Washer Toss">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🥏 Washer Toss</h1>
+        </header>
+        
+        <main id="main-content">
+            <!-- Player Registration Screen -->
+            <div id="player-registration" class="screen active">
+                <h2>Player Registration</h2>
+                
+                <!-- Saved Players Section -->
+                <div id="saved-players-section" class="saved-players">
+                    <h3>Saved Players</h3>
+                    <div id="saved-players-list"></div>
+                </div>
+                
+                <!-- Add New Player -->
+                <div class="player-input">
+                    <input type="text" id="player-name" placeholder="Enter new player name" maxlength="20">
+                    <button id="add-player">Add Player</button>
+                </div>
+                
+                <!-- Selected Players for Tournament -->
+                <div class="players-list">
+                    <h3>Selected Players (<span id="player-count">0</span>)</h3>
+                    <ul id="players-ul"></ul>
+                </div>
+                <button id="start-tournament" class="primary-btn" disabled>Start Tournament</button>
+            </div>
+
+            <!-- Team Formation Screen -->
+            <div id="team-formation" class="screen">
+                <h2>Team Formation</h2>
+                <div id="teams-display"></div>
+                <button id="confirm-teams" class="primary-btn">Confirm Teams</button>
+                <button id="shuffle-teams" class="secondary-btn">Shuffle Teams</button>
+            </div>
+
+            <!-- Tournament Bracket Screen -->
+            <div id="tournament-bracket" class="screen">
+                <h2>Tournament Bracket</h2>
+                <div id="bracket-container"></div>
+                <div id="match-controls">
+                    <button id="new-tournament" class="secondary-btn">New Tournament</button>
+                </div>
+            </div>
+
+            <!-- Score Entry Modal -->
+            <div id="score-modal" class="modal">
+                <div class="modal-content">
+                    <h3>Enter Match Scores</h3>
+                    <div id="score-teams"></div>
+                    <div class="score-inputs">
+                        <div class="team-score">
+                            <label id="team1-label">Team 1</label>
+                            <input type="number" id="team1-score" min="0" max="99" placeholder="0">
+                        </div>
+                        <div class="team-score">
+                            <label id="team2-label">Team 2</label>
+                            <input type="number" id="team2-score" min="0" max="99" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button id="submit-scores" class="primary-btn">Submit Scores</button>
+                        <button id="cancel-scores" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Winner Screen -->
+            <div id="winner-screen" class="screen">
+                <h2>🎉 Tournament Complete! 🎉</h2>
+                <div id="winner-display"></div>
+                <button id="start-new-tournament" class="primary-btn">Start New Tournament</button>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
