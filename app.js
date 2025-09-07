@@ -255,7 +255,9 @@ class WasherTossApp {
                 id: `team-${i/2 + 1}`,
                 player1: shuffledPlayers[i],
                 player2: shuffledPlayers[i + 1],
-                eliminated: false
+                eliminated: false,
+                losses: 0,
+                bracket: 'winners' // 'winners' or 'losers'
             };
             this.teams.push(team);
         }
@@ -294,25 +296,29 @@ class WasherTossApp {
     generateBracket() {
         this.matches = [];
         this.currentRound = 1;
+        this.winnersRound = 1;
+        this.losersRound = 1;
         
-        // Create first round matches
+        // Create first round matches in winners bracket
         const activeTeams = [...this.teams];
-        this.createRoundMatches(activeTeams, 1);
+        this.createRoundMatches(activeTeams, 1, 'winners');
         this.displayBracket();
     }
 
-    createRoundMatches(teams, round) {
+    createRoundMatches(teams, round, bracket = 'winners') {
         const roundMatches = [];
         
         for (let i = 0; i < teams.length; i += 2) {
             const match = {
-                id: `match-${round}-${i/2 + 1}`,
+                id: `match-${bracket}-${round}-${i/2 + 1}`,
                 round: round,
+                bracket: bracket,
                 team1: teams[i],
                 team2: teams[i + 1],
                 team1Score: null,
                 team2Score: null,
                 winner: null,
+                loser: null,
                 completed: false
             };
             roundMatches.push(match);
@@ -326,28 +332,81 @@ class WasherTossApp {
         const bracketContainer = document.getElementById('bracket-container');
         bracketContainer.innerHTML = '';
         
-        const rounds = this.groupMatchesByRound();
+        // Group matches by bracket and round
+        const winnersBracket = this.matches.filter(m => m.bracket === 'winners');
+        const losersBracket = this.matches.filter(m => m.bracket === 'losers');
+        const grandFinal = this.matches.filter(m => m.bracket === 'grand-final');
         
-        Object.keys(rounds).forEach(round => {
-            const roundDiv = document.createElement('div');
-            roundDiv.className = 'bracket-round';
+        // Display Winners Bracket
+        if (winnersBracket.length > 0) {
+            const winnersSection = document.createElement('div');
+            winnersSection.className = 'bracket-section winners-bracket';
+            winnersSection.innerHTML = '<h2>Winners Bracket</h2>';
             
-            const roundTitle = document.createElement('h3');
-            roundTitle.textContent = this.getRoundName(parseInt(round), this.teams.length);
-            roundDiv.appendChild(roundTitle);
-            
-            rounds[round].forEach(match => {
-                const matchDiv = this.createMatchElement(match);
-                roundDiv.appendChild(matchDiv);
+            const winnersRounds = this.groupMatchesByRound(winnersBracket);
+            Object.keys(winnersRounds).sort((a, b) => parseInt(a) - parseInt(b)).forEach(round => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'bracket-round';
+                
+                const roundTitle = document.createElement('h3');
+                roundTitle.textContent = this.getWinnersRoundName(parseInt(round), this.teams.length);
+                roundDiv.appendChild(roundTitle);
+                
+                winnersRounds[round].forEach(match => {
+                    const matchDiv = this.createMatchElement(match);
+                    roundDiv.appendChild(matchDiv);
+                });
+                
+                winnersSection.appendChild(roundDiv);
             });
             
-            bracketContainer.appendChild(roundDiv);
-        });
+            bracketContainer.appendChild(winnersSection);
+        }
+        
+        // Display Losers Bracket
+        if (losersBracket.length > 0) {
+            const losersSection = document.createElement('div');
+            losersSection.className = 'bracket-section losers-bracket';
+            losersSection.innerHTML = '<h2>Losers Bracket</h2>';
+            
+            const losersRounds = this.groupMatchesByRound(losersBracket);
+            Object.keys(losersRounds).sort((a, b) => parseInt(a) - parseInt(b)).forEach(round => {
+                const roundDiv = document.createElement('div');
+                roundDiv.className = 'bracket-round';
+                
+                const roundTitle = document.createElement('h3');
+                roundTitle.textContent = `Losers Round ${round}`;
+                roundDiv.appendChild(roundTitle);
+                
+                losersRounds[round].forEach(match => {
+                    const matchDiv = this.createMatchElement(match);
+                    roundDiv.appendChild(matchDiv);
+                });
+                
+                losersSection.appendChild(roundDiv);
+            });
+            
+            bracketContainer.appendChild(losersSection);
+        }
+        
+        // Display Grand Final
+        if (grandFinal.length > 0) {
+            const grandFinalSection = document.createElement('div');
+            grandFinalSection.className = 'bracket-section grand-final';
+            grandFinalSection.innerHTML = '<h2>Grand Final</h2>';
+            
+            grandFinal.forEach(match => {
+                const matchDiv = this.createMatchElement(match);
+                grandFinalSection.appendChild(matchDiv);
+            });
+            
+            bracketContainer.appendChild(grandFinalSection);
+        }
     }
 
-    groupMatchesByRound() {
+    groupMatchesByRound(matches = this.matches) {
         const rounds = {};
-        this.matches.forEach(match => {
+        matches.forEach(match => {
             if (!rounds[match.round]) {
                 rounds[match.round] = [];
             }
@@ -356,31 +415,35 @@ class WasherTossApp {
         return rounds;
     }
 
-    getRoundName(round, totalTeams) {
+    getWinnersRoundName(round, totalTeams) {
         const totalRounds = Math.log2(totalTeams);
-        if (round === totalRounds) return 'Final';
-        if (round === totalRounds - 1) return 'Semi-Final';
-        if (round === totalRounds - 2) return 'Quarter-Final';
-        return `Round ${round}`;
+        if (round === totalRounds) return 'Winners Final';
+        if (round === totalRounds - 1) return 'Winners Semi-Final';
+        if (round === totalRounds - 2) return 'Winners Quarter-Final';
+        return `Winners Round ${round}`;
     }
 
     createMatchElement(match) {
         const matchDiv = document.createElement('div');
-        matchDiv.className = `match ${match.completed ? 'completed' : ''}`;
+        matchDiv.className = `match ${match.completed ? 'completed' : ''} ${match.bracket}`;
         
         const team1ScoreDisplay = match.team1Score !== null ? ` (${match.team1Score})` : '';
         const team2ScoreDisplay = match.team2Score !== null ? ` (${match.team2Score})` : '';
         
+        // Show loss count for teams
+        const team1LossDisplay = match.team1.losses > 0 ? ` [${match.team1.losses} loss${match.team1.losses > 1 ? 'es' : ''}]` : '';
+        const team2LossDisplay = match.team2.losses > 0 ? ` [${match.team2.losses} loss${match.team2.losses > 1 ? 'es' : ''}]` : '';
+        
         matchDiv.innerHTML = `
             <div class="match-teams">
-                <div class="match-team ${match.winner === match.team1 ? 'winner' : match.completed ? 'eliminated' : ''}" 
+                <div class="match-team ${match.winner === match.team1 ? 'winner' : match.completed && match.loser === match.team1 ? 'loser' : ''}"
                      onclick="app.openScoreModal('${match.id}')">
-                    <span class="team-name">${match.team1.player1.name} & ${match.team1.player2.name}${team1ScoreDisplay}</span>
+                    <span class="team-name">${match.team1.player1.name} & ${match.team1.player2.name}${team1ScoreDisplay}${team1LossDisplay}</span>
                     ${!match.completed ? '<button class="enter-score">Enter Score</button>' : ''}
                 </div>
-                <div class="match-team ${match.winner === match.team2 ? 'winner' : match.completed ? 'eliminated' : ''}" 
+                <div class="match-team ${match.winner === match.team2 ? 'winner' : match.completed && match.loser === match.team2 ? 'loser' : ''}"
                      onclick="app.openScoreModal('${match.id}')">
-                    <span class="team-name">${match.team2.player1.name} & ${match.team2.player2.name}${team2ScoreDisplay}</span>
+                    <span class="team-name">${match.team2.player1.name} & ${match.team2.player2.name}${team2ScoreDisplay}${team2LossDisplay}</span>
                     ${!match.completed ? '<button class="enter-score">Enter Score</button>' : ''}
                 </div>
             </div>
@@ -431,11 +494,37 @@ class WasherTossApp {
         this.currentMatch.team1Score = team1Score;
         this.currentMatch.team2Score = team2Score;
         this.currentMatch.winner = team1Score > team2Score ? this.currentMatch.team1 : this.currentMatch.team2;
+        this.currentMatch.loser = team1Score > team2Score ? this.currentMatch.team2 : this.currentMatch.team1;
         this.currentMatch.completed = true;
         
-        // Mark losing team as eliminated
-        const losingTeam = team1Score > team2Score ? this.currentMatch.team2 : this.currentMatch.team1;
-        losingTeam.eliminated = true;
+        // Handle double elimination logic
+        const losingTeam = this.currentMatch.loser;
+        const winningTeam = this.currentMatch.winner;
+        
+        if (this.currentMatch.bracket === 'grand-final') {
+            // Special grand final logic
+            losingTeam.losses++;
+            
+            if (losingTeam.bracket === 'winners' && losingTeam.losses === 1) {
+                // Winners bracket champion lost their first game - create bracket reset
+                this.createBracketReset(winningTeam, losingTeam);
+            } else {
+                // Tournament is over
+                this.winner = winningTeam;
+                this.showWinner();
+            }
+        } else {
+            // Regular match logic
+            losingTeam.losses++;
+            
+            if (losingTeam.losses >= 2) {
+                // Team is eliminated after 2 losses
+                losingTeam.eliminated = true;
+            } else if (losingTeam.bracket === 'winners') {
+                // Move team from winners to losers bracket
+                losingTeam.bracket = 'losers';
+            }
+        }
         
         this.closeScoreModal();
         this.checkRoundComplete();
@@ -444,22 +533,146 @@ class WasherTossApp {
     }
 
     checkRoundComplete() {
-        const currentRoundMatches = this.matches.filter(m => m.round === this.currentRound);
-        const allCompleted = currentRoundMatches.every(m => m.completed);
+        // Check if current winners bracket round is complete
+        const winnersMatches = this.matches.filter(m =>
+            m.bracket === 'winners' && m.round === this.winnersRound
+        );
+        const winnersComplete = winnersMatches.length > 0 && winnersMatches.every(m => m.completed);
         
-        if (allCompleted) {
-            const winners = currentRoundMatches.map(m => m.winner);
+        // Check if current losers bracket round is complete
+        const losersMatches = this.matches.filter(m =>
+            m.bracket === 'losers' && m.round === this.losersRound
+        );
+        const losersComplete = losersMatches.length === 0 || losersMatches.every(m => m.completed);
+        
+        if (winnersComplete) {
+            const winnersAdvancing = winnersMatches.map(m => m.winner);
+            const losersFromWinners = winnersMatches.map(m => m.loser).filter(team => !team.eliminated);
             
-            if (winners.length === 1) {
-                // Tournament complete
-                this.winner = winners[0];
-                this.showWinner();
+            // Check if we have a winners bracket champion
+            if (winnersAdvancing.length === 1) {
+                const winnersChampion = winnersAdvancing[0];
+                
+                // Check if there's a losers bracket champion
+                const losersChampion = this.getLosersChampion();
+                
+                // Check if there are any teams that lost from winners bracket but aren't eliminated
+                const teamsInLosers = losersFromWinners.filter(team => !team.eliminated);
+                
+                if (losersChampion && !losersChampion.eliminated) {
+                    // Create grand final between winners champion and losers champion
+                    this.createGrandFinal(winnersChampion, losersChampion);
+                } else if (teamsInLosers.length > 0) {
+                    // There are teams in losers bracket but no champion yet
+                    // The team that just lost becomes the losers champion (since it's the only one)
+                    if (teamsInLosers.length === 1) {
+                        this.createGrandFinal(winnersChampion, teamsInLosers[0]);
+                    } else {
+                        // Multiple teams in losers bracket, need to play them off
+                        this.addToLosersBracket(teamsInLosers);
+                    }
+                } else {
+                    // No teams left in losers bracket, winners champion wins
+                    this.winner = winnersChampion;
+                    this.showWinner();
+                }
             } else {
-                // Create next round
-                this.currentRound++;
-                this.createRoundMatches(winners, this.currentRound);
+                // Create next winners round
+                this.winnersRound++;
+                this.createRoundMatches(winnersAdvancing, this.winnersRound, 'winners');
+                
+                // Add losers from winners bracket to losers bracket
+                if (losersFromWinners.length > 0) {
+                    this.addToLosersBracket(losersFromWinners);
+                }
             }
         }
+        
+        if (losersComplete && losersMatches.length > 0) {
+            const losersAdvancing = losersMatches.map(m => m.winner).filter(team => !team.eliminated);
+            
+            if (losersAdvancing.length > 1) {
+                // Create next losers round
+                this.losersRound++;
+                this.createRoundMatches(losersAdvancing, this.losersRound, 'losers');
+            }
+        }
+        
+        this.currentRound = Math.max(this.winnersRound, this.losersRound);
+    }
+    
+    getLosersChampion() {
+        const losersMatches = this.matches.filter(m => m.bracket === 'losers');
+        if (losersMatches.length === 0) return null;
+        
+        const lastRound = Math.max(...losersMatches.map(m => m.round));
+        const finalLosersMatches = losersMatches.filter(m => m.round === lastRound && m.completed);
+        
+        if (finalLosersMatches.length === 1) {
+            return finalLosersMatches[0].winner;
+        }
+        return null;
+    }
+    
+    addToLosersBracket(teams) {
+        if (teams.length === 0) return;
+        
+        // Get existing teams waiting in losers bracket for this round
+        const waitingLosersTeams = this.teams.filter(team =>
+            team.bracket === 'losers' && !team.eliminated &&
+            !this.matches.some(m => m.bracket === 'losers' &&
+                (m.team1 === team || m.team2 === team) && !m.completed)
+        );
+        
+        // Combine new losers with waiting teams
+        const allLosersTeams = [...waitingLosersTeams, ...teams];
+        
+        // Create matches if we have enough teams
+        if (allLosersTeams.length >= 2) {
+            // If odd number, one team gets a bye to next round
+            const teamsToMatch = allLosersTeams.length % 2 === 0 ?
+                allLosersTeams : allLosersTeams.slice(0, -1);
+            
+            if (teamsToMatch.length >= 2) {
+                this.createRoundMatches(teamsToMatch, this.losersRound, 'losers');
+            }
+        }
+    }
+    
+    createGrandFinal(winnersChampion, losersChampion) {
+        const grandFinal = {
+            id: `match-grand-final-1`,
+            round: this.currentRound + 1,
+            bracket: 'grand-final',
+            team1: winnersChampion,
+            team2: losersChampion,
+            team1Score: null,
+            team2Score: null,
+            winner: null,
+            loser: null,
+            completed: false
+        };
+        
+        this.matches.push(grandFinal);
+        this.currentRound++;
+    }
+    
+    createBracketReset(losersChampion, winnersChampion) {
+        const bracketReset = {
+            id: `match-grand-final-2`,
+            round: this.currentRound + 1,
+            bracket: 'grand-final',
+            team1: losersChampion,
+            team2: winnersChampion,
+            team1Score: null,
+            team2Score: null,
+            winner: null,
+            loser: null,
+            completed: false
+        };
+        
+        this.matches.push(bracketReset);
+        this.currentRound++;
     }
 
     showWinner() {
