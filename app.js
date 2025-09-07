@@ -344,16 +344,10 @@ class WasherTossApp {
                 id: `match-${bracket}-${round}-${i/2 + 1}`,
                 round: round,
                 bracket: bracket,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> a8e69be (Add default set of names)
                 team1: teams[i],
                 team2: teams[i + 1],
-=======
                 team1: sortedTeams[i],
                 team2: sortedTeams[i + 1],
->>>>>>> 5fb158c (Add default set of names)
                 team1Score: null,
                 team2Score: null,
                 winner: null,
@@ -469,52 +463,26 @@ class WasherTossApp {
         const team1ScoreDisplay = match.team1Score !== null ? ` (${match.team1Score})` : '';
         const team2ScoreDisplay = match.team2Score !== null ? ` (${match.team2Score})` : '';
         
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> a8e69be (Add default set of names)
         // Show loss count for teams
         const team1LossDisplay = match.team1.losses > 0 ? ` [${match.team1.losses} loss${match.team1.losses > 1 ? 'es' : ''}]` : '';
         const team2LossDisplay = match.team2.losses > 0 ? ` [${match.team2.losses} loss${match.team2.losses > 1 ? 'es' : ''}]` : '';
         
-<<<<<<< HEAD
-=======
-=======
         // Show loss count and score differential for teams
         const team1LossDisplay = match.team1.losses > 0 ? ` [${match.team1.losses} loss${match.team1.losses > 1 ? 'es' : ''}]` : '';
         const team2LossDisplay = match.team2.losses > 0 ? ` [${match.team2.losses} loss${match.team2.losses > 1 ? 'es' : ''}]` : '';
         
         const team1DiffDisplay = match.team1.matchesPlayed > 0 ? ` (Diff: ${match.team1.scoreDifferential > 0 ? '+' : ''}${match.team1.scoreDifferential})` : '';
         const team2DiffDisplay = match.team2.matchesPlayed > 0 ? ` (Diff: ${match.team2.scoreDifferential > 0 ? '+' : ''}${match.team2.scoreDifferential})` : '';
-        
->>>>>>> 5fb158c (Add default set of names)
->>>>>>> a8e69be (Add default set of names)
         matchDiv.innerHTML = `
             <div class="match-teams">
                 <div class="match-team ${match.winner === match.team1 ? 'winner' : match.completed && match.loser === match.team1 ? 'loser' : ''}"
                      onclick="app.openScoreModal('${match.id}')">
-<<<<<<< HEAD
-                    <span class="team-name">${match.team1.player1.name} & ${match.team1.player2.name}${team1ScoreDisplay}${team1LossDisplay}</span>
-=======
-<<<<<<< HEAD
-                    <span class="team-name">${match.team1.player1.name} & ${match.team1.player2.name}${team1ScoreDisplay}${team1LossDisplay}</span>
-=======
                     <span class="team-name">${match.team1.player1.name} & ${match.team1.player2.name}${team1ScoreDisplay}${team1LossDisplay}${team1DiffDisplay}</span>
->>>>>>> 5fb158c (Add default set of names)
->>>>>>> a8e69be (Add default set of names)
                     ${!match.completed ? '<button class="enter-score">Enter Score</button>' : ''}
                 </div>
                 <div class="match-team ${match.winner === match.team2 ? 'winner' : match.completed && match.loser === match.team2 ? 'loser' : ''}"
                      onclick="app.openScoreModal('${match.id}')">
-<<<<<<< HEAD
-                    <span class="team-name">${match.team2.player1.name} & ${match.team2.player2.name}${team2ScoreDisplay}${team2LossDisplay}</span>
-=======
-<<<<<<< HEAD
-                    <span class="team-name">${match.team2.player1.name} & ${match.team2.player2.name}${team2ScoreDisplay}${team2LossDisplay}</span>
-=======
                     <span class="team-name">${match.team2.player1.name} & ${match.team2.player2.name}${team2ScoreDisplay}${team2LossDisplay}${team2DiffDisplay}</span>
->>>>>>> 5fb158c (Add default set of names)
->>>>>>> a8e69be (Add default set of names)
                     ${!match.completed ? '<button class="enter-score">Enter Score</button>' : ''}
                 </div>
             </div>
@@ -568,10 +536,6 @@ class WasherTossApp {
         this.currentMatch.loser = team1Score > team2Score ? this.currentMatch.team2 : this.currentMatch.team1;
         this.currentMatch.completed = true;
         
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
         // Update team statistics
         const team1 = this.currentMatch.team1;
         const team2 = this.currentMatch.team2;
@@ -587,8 +551,6 @@ class WasherTossApp {
         team2.scoreDifferential = team2.totalScore - team2.totalOpponentScore;
         team2.matchesPlayed++;
         
->>>>>>> 5fb158c (Add default set of names)
->>>>>>> a8e69be (Add default set of names)
         // Handle double elimination logic
         const losingTeam = this.currentMatch.loser;
         const winningTeam = this.currentMatch.winner;
