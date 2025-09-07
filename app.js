@@ -9,8 +9,16 @@ class WasherTossApp {
         this.winner = null;
         this.currentMatch = null;
         
+        // Default set of names
+        this.defaultNames = [
+            'Briggs', 'Justin', 'Jen', 'Matt', 'Chanie', 'Joy',
+            'Dale', 'Jean', 'Mitch', 'Curtis', 'Sheryl', 'Brent',
+            'Kyle', 'Anik', 'Adam', 'Hannah'
+        ];
+        
         this.initializeEventListeners();
         this.loadFromStorage();
+        this.initializeDefaultNames();
         this.displaySavedPlayers();
     }
 
@@ -33,6 +41,18 @@ class WasherTossApp {
         // Score Modal
         document.getElementById('submit-scores').addEventListener('click', () => this.submitScores());
         document.getElementById('cancel-scores').addEventListener('click', () => this.closeScoreModal());
+    }
+
+    initializeDefaultNames() {
+        // Add default names to saved players if they don't already exist
+        this.defaultNames.forEach(name => {
+            if (!this.savedPlayers.includes(name)) {
+                this.savedPlayers.push(name);
+            }
+        });
+        
+        // Save the updated saved players list
+        this.saveToStorage();
     }
 
     loadFromStorage() {
