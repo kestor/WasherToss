@@ -463,6 +463,7 @@ class WasherTossApp {
         const team1ScoreDisplay = match.team1Score !== null ? ` (${match.team1Score})` : '';
         const team2ScoreDisplay = match.team2Score !== null ? ` (${match.team2Score})` : '';
         
+
         // Show loss count for teams
         const team1LossDisplay = match.team1.losses > 0 ? ` [${match.team1.losses} loss${match.team1.losses > 1 ? 'es' : ''}]` : '';
         const team2LossDisplay = match.team2.losses > 0 ? ` [${match.team2.losses} loss${match.team2.losses > 1 ? 'es' : ''}]` : '';
