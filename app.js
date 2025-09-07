@@ -51,22 +51,6 @@ class WasherTossApp {
             }
         });
         
-        // Auto-select all default players for the tournament
-        this.defaultNames.forEach(name => {
-            if (!this.players.find(p => p.name === name)) {
-                const player = {
-                    id: Date.now().toString() + Math.random(),
-                    name: name,
-                    teamId: null
-                };
-                this.players.push(player);
-            }
-        });
-        
-        // Update the display after auto-selecting players
-        this.updatePlayersDisplay();
-        this.updateStartButton();
-        
         // Save the updated saved players list
         this.saveToStorage();
     }
@@ -131,10 +115,8 @@ class WasherTossApp {
         this.savedPlayers.forEach(playerName => {
             const playerDiv = document.createElement('div');
             playerDiv.className = 'saved-player-item';
-            const isSelected = this.players.find(p => p.name === playerName) !== undefined;
             playerDiv.innerHTML = `
-                <input type="checkbox" class="saved-player-checkbox" id="saved-${playerName}"
-                       ${isSelected ? 'checked' : ''}
+                <input type="checkbox" class="saved-player-checkbox" id="saved-${playerName}" 
                        onchange="app.toggleSavedPlayer('${playerName}', this.checked)">
                 <label for="saved-${playerName}">${playerName}</label>
             `;
@@ -275,11 +257,7 @@ class WasherTossApp {
                 player2: shuffledPlayers[i + 1],
                 eliminated: false,
                 losses: 0,
-                bracket: 'winners', // 'winners' or 'losers'
-                totalScore: 0,
-                totalOpponentScore: 0,
-                scoreDifferential: 0,
-                matchesPlayed: 0
+                bracket: 'winners' // 'winners' or 'losers'
             };
             this.teams.push(team);
         }
@@ -330,24 +308,13 @@ class WasherTossApp {
     createRoundMatches(teams, round, bracket = 'winners') {
         const roundMatches = [];
         
-        // Sort teams by score differential for better matchmaking (except first round)
-        let sortedTeams = [...teams];
-        if (round > 1) {
-            sortedTeams.sort((a, b) => b.scoreDifferential - a.scoreDifferential);
-        }
-        
-        for (let i = 0; i < sortedTeams.length; i += 2) {
-            // Skip if we don't have a pair
-            if (i + 1 >= sortedTeams.length) break;
-            
+        for (let i = 0; i < teams.length; i += 2) {
             const match = {
                 id: `match-${bracket}-${round}-${i/2 + 1}`,
                 round: round,
                 bracket: bracket,
                 team1: teams[i],
                 team2: teams[i + 1],
-                team1: sortedTeams[i],
-                team2: sortedTeams[i + 1],
                 team1Score: null,
                 team2Score: null,
                 winner: null,
@@ -463,27 +430,20 @@ class WasherTossApp {
         const team1ScoreDisplay = match.team1Score !== null ? ` (${match.team1Score})` : '';
         const team2ScoreDisplay = match.team2Score !== null ? ` (${match.team2Score})` : '';
         
-
         // Show loss count for teams
         const team1LossDisplay = match.team1.losses > 0 ? ` [${match.team1.losses} loss${match.team1.losses > 1 ? 'es' : ''}]` : '';
         const team2LossDisplay = match.team2.losses > 0 ? ` [${match.team2.losses} loss${match.team2.losses > 1 ? 'es' : ''}]` : '';
         
-        // Show loss count and score differential for teams
-        const team1LossDisplay = match.team1.losses > 0 ? ` [${match.team1.losses} loss${match.team1.losses > 1 ? 'es' : ''}]` : '';
-        const team2LossDisplay = match.team2.losses > 0 ? ` [${match.team2.losses} loss${match.team2.losses > 1 ? 'es' : ''}]` : '';
-        
-        const team1DiffDisplay = match.team1.matchesPlayed > 0 ? ` (Diff: ${match.team1.scoreDifferential > 0 ? '+' : ''}${match.team1.scoreDifferential})` : '';
-        const team2DiffDisplay = match.team2.matchesPlayed > 0 ? ` (Diff: ${match.team2.scoreDifferential > 0 ? '+' : ''}${match.team2.scoreDifferential})` : '';
         matchDiv.innerHTML = `
             <div class="match-teams">
                 <div class="match-team ${match.winner === match.team1 ? 'winner' : match.completed && match.loser === match.team1 ? 'loser' : ''}"
                      onclick="app.openScoreModal('${match.id}')">
-                    <span class="team-name">${match.team1.player1.name} & ${match.team1.player2.name}${team1ScoreDisplay}${team1LossDisplay}${team1DiffDisplay}</span>
+                    <span class="team-name">${match.team1.player1.name} & ${match.team1.player2.name}${team1ScoreDisplay}${team1LossDisplay}</span>
                     ${!match.completed ? '<button class="enter-score">Enter Score</button>' : ''}
                 </div>
                 <div class="match-team ${match.winner === match.team2 ? 'winner' : match.completed && match.loser === match.team2 ? 'loser' : ''}"
                      onclick="app.openScoreModal('${match.id}')">
-                    <span class="team-name">${match.team2.player1.name} & ${match.team2.player2.name}${team2ScoreDisplay}${team2LossDisplay}${team2DiffDisplay}</span>
+                    <span class="team-name">${match.team2.player1.name} & ${match.team2.player2.name}${team2ScoreDisplay}${team2LossDisplay}</span>
                     ${!match.completed ? '<button class="enter-score">Enter Score</button>' : ''}
                 </div>
             </div>
@@ -536,21 +496,6 @@ class WasherTossApp {
         this.currentMatch.winner = team1Score > team2Score ? this.currentMatch.team1 : this.currentMatch.team2;
         this.currentMatch.loser = team1Score > team2Score ? this.currentMatch.team2 : this.currentMatch.team1;
         this.currentMatch.completed = true;
-        
-        // Update team statistics
-        const team1 = this.currentMatch.team1;
-        const team2 = this.currentMatch.team2;
-        
-        // Update score tracking for both teams
-        team1.totalScore += team1Score;
-        team1.totalOpponentScore += team2Score;
-        team1.scoreDifferential = team1.totalScore - team1.totalOpponentScore;
-        team1.matchesPlayed++;
-        
-        team2.totalScore += team2Score;
-        team2.totalOpponentScore += team1Score;
-        team2.scoreDifferential = team2.totalScore - team2.totalOpponentScore;
-        team2.matchesPlayed++;
         
         // Handle double elimination logic
         const losingTeam = this.currentMatch.loser;
